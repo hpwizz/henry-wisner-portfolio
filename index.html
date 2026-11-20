@@ -1,0 +1,753 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Portfolio of Henry P. Wisner, data analyst: election night trackers, program dashboards, voter file analysis and BigQuery SQL.">
+<title>Henry P. Wisner | Data Analyst</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,400..800&family=Public+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a results-desk page. Hero with a "reporting status" board, then case studies as two-column reports, then SQL samples in tabs. */
+:root {
+  --bg: #F3F4F7;
+  --surface: #FFFFFF;
+  --ink: #151829;
+  --muted: #565B70;
+  --line: #D8DBE5;
+  --accent: #2B45D4;
+  --accent-soft: #E3E7FB;
+  --signal: #9A6608;
+  --signal-soft: #FBF0D6;
+  --code-bg: #ECEEF4;
+  --font-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Public Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0F1120; --surface: #171A2C; --ink: #E9EBF3; --muted: #A0A6BD; --line: #2A2E45;
+    --accent: #8C9CFF; --accent-soft: #1F2547; --signal: #F0B54A; --signal-soft: #352A10; --code-bg: #121528;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0F1120; --surface: #171A2C; --ink: #E9EBF3; --muted: #A0A6BD; --line: #2A2E45;
+  --accent: #8C9CFF; --accent-soft: #1F2547; --signal: #F0B54A; --signal-soft: #352A10; --code-bg: #121528;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+}
+.wrap {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding-left: max(20px, env(safe-area-inset-left, 0px));
+  padding-right: max(20px, env(safe-area-inset-right, 0px));
+}
+a { color: var(--accent); text-underline-offset: 3px; }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; line-height: 1.1; }
+p { margin: 0; }
+
+/* Draft note */
+.draft {
+  background: var(--signal-soft);
+  color: var(--ink);
+  font-size: 14px;
+  border-bottom: 1px solid var(--line);
+}
+.draft .wrap { padding-block: 10px; }
+.draft strong { color: var(--signal); }
+.fill {
+  background: var(--signal-soft);
+  color: var(--signal);
+  border-bottom: 1px dashed var(--signal);
+  padding: 0 3px;
+  border-radius: 2px;
+  font-weight: 500;
+}
+
+/* Top bar */
+.topbar .wrap {
+  display: flex; flex-wrap: wrap; gap: 12px 24px;
+  justify-content: space-between; align-items: center;
+  padding-block: 20px;
+}
+.mark { font-family: var(--font-display); font-weight: 700; font-stretch: 110%; letter-spacing: 0.01em; }
+.topbar nav { display: flex; gap: 20px; font-size: 15px; }
+.topbar nav a { color: var(--muted); text-decoration: none; }
+.topbar nav a:hover { color: var(--ink); }
+
+/* Hero */
+.hero .wrap {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: 48px;
+  align-items: end;
+  padding-block: 40px 56px;
+}
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 16px;
+}
+.hero .wrap > div:first-child { container-type: inline-size; min-width: 0; }
+.hero h1 { font-size: clamp(28px, 6vw, 64px); font-weight: 800; font-stretch: 118%; letter-spacing: -0.01em; white-space: nowrap; }
+@supports (font-size: 1cqi) { .hero h1 { font-size: min(76px, 9cqi); } }
+.hero .lede { margin-top: 20px; font-size: 19px; color: var(--muted); max-width: 34em; }
+.cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+.btn {
+  display: inline-block; padding: 10px 18px; border-radius: 6px;
+  font-weight: 600; font-size: 15px; text-decoration: none;
+  border: 1px solid var(--accent);
+}
+.btn.primary { background: var(--accent); color: var(--surface); }
+.btn.ghost { color: var(--accent); background: transparent; }
+
+.board {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 20px 22px;
+}
+.board h2 {
+  font-family: var(--font-mono); font-size: 12px; font-weight: 500;
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted);
+  display: flex; justify-content: space-between;
+}
+.board h2 .live { color: var(--accent); }
+.board-row { padding-block: 14px; border-bottom: 1px solid var(--line); }
+.board-row:last-child { border-bottom: 0; padding-bottom: 0; }
+.board-row .label { font-size: 14px; color: var(--muted); }
+.board { container-type: inline-size; min-width: 0; }
+.board-row .value.tools { font-size: 15px; font-stretch: 100%; white-space: nowrap; }
+@supports (font-size: 1cqi) { .board-row .value.tools { font-size: min(18px, 3.8cqi); } }
+.board-row .value {
+  font-family: var(--font-display); font-weight: 700; font-stretch: 112%;
+  font-size: 24px; font-variant-numeric: tabular-nums;
+}
+.bar { height: 6px; background: var(--accent-soft); border-radius: 3px; margin-top: 8px; overflow: hidden; }
+.bar span { display: block; height: 100%; width: 100%; background: var(--accent); }
+.cycles { display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
+.cycles span {
+  font-family: var(--font-mono); font-size: 13px;
+  padding: 2px 8px; border-radius: 4px; background: var(--accent-soft); color: var(--accent);
+}
+
+/* Sections */
+section.block .wrap { padding-block: 56px; }
+.section-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px 24px; margin-bottom: 32px; }
+.section-head h2 { font-size: clamp(30px, 4vw, 42px); font-weight: 750; font-stretch: 112%; }
+.section-head p { color: var(--muted); max-width: 36em; }
+.rule { border: 0; border-top: 1px solid var(--line); margin: 0; }
+
+/* Case studies */
+.cases { display: grid; gap: 28px; }
+.case {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 32px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 36px;
+}
+.case-meta { font-family: var(--font-mono); font-size: 12px; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; }
+.case h3 { font-size: 30px; font-weight: 750; font-stretch: 108%; margin-top: 8px; }
+.case .sub { color: var(--muted); margin-top: 6px; font-size: 17px; }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px; }
+.tags span { font-size: 13px; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+.facts { display: grid; gap: 18px; margin-top: 24px; }
+.facts dt {
+  font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 4px;
+}
+.facts dd { margin: 0; max-width: 40em; }
+.side { display: grid; gap: 20px; align-content: start; min-width: 0; }
+.shot {
+  aspect-ratio: 16 / 10;
+  max-width: 100%;
+  border: 1.5px dashed var(--line);
+  border-radius: 8px;
+  background: var(--bg);
+  display: grid; place-items: center; text-align: center;
+  padding: 16px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.shot b { display: block; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 4px; }
+.notes {
+  background: var(--accent-soft);
+  border-radius: 8px;
+  padding: 18px 20px;
+}
+.notes h4 {
+  margin: 0 0 8px; font-family: var(--font-mono); font-size: 12px; font-weight: 500;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent);
+}
+.notes ul { margin: 0; padding-left: 18px; display: grid; gap: 8px; font-size: 15px; }
+.gallery { order: 3; grid-column: 1 / -1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.gallery figure { margin: 0; min-width: 0; }
+.gallery figure.wide { grid-column: 1 / -1; }
+.gallery a { display: block; }
+.gallery img { display: block; width: 100%; height: auto; border: 1px solid var(--line); border-radius: 8px; }
+.gallery figcaption { font-size: 13px; color: var(--muted); margin-top: 8px; }
+
+/* SQL */
+.tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+.tab {
+  font: 500 14px var(--font-body);
+  padding: 8px 14px; border-radius: 6px;
+  border: 1px solid var(--line); background: var(--surface); color: var(--muted);
+  cursor: pointer;
+}
+.tab[aria-selected="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.7fr);
+}
+.panel-text { padding: 28px; display: grid; gap: 14px; align-content: start; }
+.panel-text h3 { font-size: 24px; font-weight: 700; font-stretch: 108%; }
+.panel-text p { color: var(--muted); }
+.panel-text .why { color: var(--ink); }
+pre {
+  margin: 0;
+  background: var(--code-bg);
+  border-left: 1px solid var(--line);
+  border-radius: 0 12px 12px 0;
+  padding: 24px;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--ink);
+  min-width: 0;
+}
+pre .c { color: var(--muted); }
+pre .k { color: var(--accent); font-weight: 500; }
+
+/* Skills */
+.skills { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; }
+.skills h3 { font-size: 18px; font-weight: 700; font-stretch: 105%; margin-bottom: 10px; }
+.skills ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; color: var(--muted); }
+.skills li::before { content: "▪"; color: var(--accent); margin-right: 8px; }
+
+/* About */
+.about { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 48px; }
+.about p + p { margin-top: 14px; }
+.contact { display: grid; gap: 12px; align-content: start; }
+.contact div { display: flex; justify-content: space-between; gap: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.contact span:first-child { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+
+footer .wrap { padding-block: 32px 48px; color: var(--muted); font-size: 14px; }
+
+@media (max-width: 860px) {
+  .hero .wrap, .case, .about { grid-template-columns: 1fr; }
+  .panel, .gallery { grid-template-columns: 1fr; }
+  pre { border-left: 0; border-top: 1px solid var(--line); border-radius: 0 0 12px 12px; }
+  .skills { grid-template-columns: 1fr; }
+  .case { padding: 24px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .bar span { animation: fill 1.2s ease-out both; }
+  @keyframes fill { from { width: 30%; } to { width: 100%; } }
+}
+</style>
+<style>
+body { margin: 0; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+
+
+<header class="topbar">
+  <div class="wrap">
+    <div class="mark">Henry P. Wisner</div>
+    <nav aria-label="Sections">
+      <a href="#work">Work</a>
+      <a href="#sql">SQL</a>
+      <a href="#about">About</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <div>
+      <div class="eyebrow">Data analyst · SQL · Dashboards · Targeting</div>
+      <h1>Henry P. Wisner</h1>
+      <p class="lede">I build reporting for organizers and leadership: election night trackers, program funnels, and comparisons across election cycles. Most of my work starts in BigQuery and ends in a dashboard people check every morning.</p>
+      <div class="cta">
+        <a class="btn primary" href="#work">See the work</a>
+        <a class="btn ghost" href="#sql">Read SQL samples</a>
+      </div>
+    </div>
+    <aside class="board" aria-label="Portfolio at a glance">
+      <h2><span>Reporting status</span><span class="live">● Live</span></h2>
+      <div class="board-row">
+        <div class="label">Case studies reported</div>
+        <div class="value">6 of 6</div>
+        <div class="bar"><span></span></div>
+      </div>
+      <div class="board-row">
+        <div class="label">Election cycles compared</div>
+        <div class="cycles"><span>2018</span><span>2022</span><span>2026</span></div>
+      </div>
+      <div class="board-row">
+        <div class="label">Main tools</div>
+        <div class="value tools">BigQuery · Claude · Looker Studio · Sheets</div>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<hr class="rule">
+
+<section class="block" id="work">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Case studies</h2>
+      <p>Each project covers the question, the data, what I built, and the judgment calls that make the numbers trustworthy.</p>
+    </div>
+
+    <div class="cases">
+
+      <article class="case">
+        <div>
+          <div class="case-meta">Program analytics · 2026 cycle</div>
+          <h3>VOTE-E Dashboard</h3>
+          <p class="sub">Reporting for a chatbot that helps young people register and plan to vote.</p>
+          <div class="tags"><span>BigQuery</span><span>Funnel analysis</span><span>Attribution</span><span>Voter file match</span></div>
+          <dl class="facts">
+            <div><dt>The question</dt><dd>The program team needed one place to see who the chatbot reached, where people dropped off, and which partners and sources brought in people who went on to register.</dd></div>
+            <div><dt>The data</dt><dd>Conversation logs, registration link clicks and completions, vote plan steps, partner and source attribution, and voter file matches for people who shared a name.</dd></div>
+            <div><dt>What I built</dt><dd>An 11-tab dashboard: impact toplines, a question-to-registration funnel, a vote plan funnel, partner and source breakdowns, a voter file profile of users, question topics by week, and a state map with day-by-day playback.</dd></div>
+            <div><dt>Outcome</dt><dd>The program team checked it throughout the 2026 cycle, and it refreshed daily from BigQuery. When the vote plan flow launched in October, I added it as a second funnel so the team could see exactly where people stopped. We moved partner outreach from Twitch alone to Twitch and YouTube after the source breakdown showed YouTube content converting best.</dd></div>
+          </dl>
+        </div>
+        <div class="gallery">
+          <figure>
+            <a href="shots/votee-impact.png" target="_blank" rel="noopener"><img src="shots/votee-impact.png" alt="VOTE-E Impact tab with headline numbers, the question-to-registration funnel, the vote plan funnel and conversations by hour" loading="lazy"></a>
+            <figcaption>Impact tab: registration and vote plan funnels</figcaption>
+          </figure>
+          <figure>
+            <a href="shots/votee-overview.png" target="_blank" rel="noopener"><img src="shots/votee-overview.png" alt="VOTE-E Overview tab with website visitors, cumulative people helped, new people by source and registration by source" loading="lazy"></a>
+            <figcaption>Overview tab: growth and registration by source</figcaption>
+          </figure>
+        </div>
+        <div class="side">
+          <div class="notes">
+            <h4>Method notes</h4>
+            <ul>
+              <li>Every funnel step uses the same denominator, so drop-offs compare directly.</li>
+              <li>Conversation times use the voter's local time from their state on file, fall back to Eastern, and show what share had a state.</li>
+              <li>Demographics include only voter-file-matched people, with the match rate shown beside them.</li>
+            </ul>
+          </div>
+        </div>
+      </article>
+
+      <article class="case">
+        <div>
+          <div class="case-meta">Live results · Election night 2026</div>
+          <h3>Election Night Tracker</h3>
+          <p class="sub">Campus turnout and vote share against comparison campuses, plus every race leadership was watching.</p>
+          <div class="tags"><span>AP results</span><span>Precinct geography</span><span>Live refresh</span><span>Comparison design</span></div>
+          <dl class="facts">
+            <div><dt>The question</dt><dd>Did turnout and Democratic vote share at our campuses surpass past years, and did our core campuses outperform comparison campuses? How were the Senate, House, governor and state legislative races going?</dd></div>
+            <div><dt>The data</dt><dd>Precinct-level campus results pulled from state and county election sites on election night, and AP results in BigQuery refreshed through the night.</dd></div>
+            <div><dt>What I built</dt><dd>Campus toplines, core vs. comparison charts across three cycles, a precincts-reported tracker, and chamber control views for federal and state legislative races.</dd></div>
+            <div><dt>Outcome</dt><dd>It ran live through election night and the count that followed, tracking every core and comparison campus until all of its precincts reported. Leadership could report campus results against a fair comparison instead of raw turnout alone, and our Communications, Social and Development teams used the dashboard to share content about our work and its impact.</dd></div>
+          </dl>
+        </div>
+        <div class="gallery">
+          <figure class="wide">
+            <a href="shots/election-campus-comparisons.png" target="_blank" rel="noopener"><img src="shots/election-campus-comparisons.png" alt="Election Night Tracker campus comparisons: precincts reported and turnout for 2018, 2022 and 2026 at core and comparison campuses" loading="lazy"></a>
+            <figcaption>Campus comparisons: precincts reported and turnout over time, core vs. comparison</figcaption>
+          </figure>
+          <figure class="wide">
+            <a href="shots/election-party-share.png" target="_blank" rel="noopener"><img src="shots/election-party-share.png" alt="Share of campus votes by party for core and comparison campuses, 2018 to 2026" loading="lazy"></a>
+            <figcaption>Share of campus votes by party, core vs. comparison campuses</figcaption>
+          </figure>
+        </div>
+        <div class="side">
+          <div class="notes">
+            <h4>Method notes</h4>
+            <ul>
+              <li>Comparing core campuses with comparison campuses separates program effects from statewide shifts.</li>
+              <li>Precinct IDs that didn't match the official 2026 boundaries were fixed with a manual crosswalk for split and merged precincts.</li>
+              <li>North Carolina uses Election Day votes only in every cycle, so years compare like for like.</li>
+            </ul>
+          </div>
+        </div>
+      </article>
+
+      <article class="case">
+        <div>
+          <div class="case-meta">Trend analysis · 2018 / 2022 / 2026</div>
+          <h3>Youth Early Vote Comparisons</h3>
+          <p class="sub">Is youth early voting ahead of past cycles, while voting is still under way?</p>
+          <div class="tags"><span>Time-aligned comparison</span><span>BigQuery</span><span>State drill-down</span></div>
+          <dl class="facts">
+            <div><dt>The question</dt><dd>Leadership wanted to know each morning whether 18–29 early voting was ahead of 2022 and 2018, nationally and in priority states.</dd></div>
+            <div><dt>The data</dt><dd>Daily early vote and ballot request files by age and party for three cycles.</dd></div>
+            <div><dt>What I built</dt><dd>National, priority-state and all-state views: cumulative curves by days before Election Day, youth share of all early voters, party mix, and ballot return rates.</dd></div>
+            <div><dt>Outcome</dt><dd>It gave leadership a same-day read on youth early voting in every state until early voting ended, always compared with 2022 and 2018 at the same point. Because each cycle used the same structure, adding 2026 meant loading new files rather than rebuilding. When we saw low youth ballot return rates in Michigan and Pennsylvania, we ran an extra text and social campaign encouraging young voters in those states to return their ballots.</dd></div>
+          </dl>
+        </div>
+        <div class="gallery">
+          <figure class="wide">
+            <a href="shots/earlyvote-toplines.png" target="_blank" rel="noopener"><img src="shots/earlyvote-toplines.png" alt="Youth early vote toplines comparing 2026 with 2022 nationally and in Georgia, Iowa, Michigan and North Carolina" loading="lazy"></a>
+            <figcaption>Toplines: 2026 vs. 2022 at the same point, nationally and by state</figcaption>
+          </figure>
+          <figure class="wide">
+            <a href="shots/earlyvote-cumulative.png" target="_blank" rel="noopener"><img src="shots/earlyvote-cumulative.png" alt="Cumulative 18 to 29 early voters by days before Election Day for 2018, 2022 and 2026 in priority states" loading="lazy"></a>
+            <figcaption>Cumulative 18–29 early voters by days before Election Day</figcaption>
+          </figure>
+        </div>
+        <div class="side">
+          <div class="notes">
+            <h4>Method notes</h4>
+            <ul>
+              <li>Each cycle is cut at the same number of days before Election Day, so 2026 is never compared with a finished 2022.</li>
+              <li>Return rates leave out all-mail states, where every voter gets a ballot.</li>
+              <li>National totals count only states with data in both cycles being compared.</li>
+              <li>2018 has no request dates, so it shows no return rate instead of a misleading one.</li>
+            </ul>
+          </div>
+        </div>
+      </article>
+
+      <article class="case">
+        <div>
+          <div class="case-meta">Program evaluation · Contact data</div>
+          <h3>Contact Method Analysis</h3>
+          <p class="sub">How texted voters compared with young voters we didn't reach.</p>
+          <div class="tags"><span>BigQuery</span><span>Comparison groups</span><span>Turnout scores</span></div>
+          <dl class="facts">
+            <div><dt>The question</dt><dd>Did people we texted request and return ballots at higher rates than similar people we never contacted?</dd></div>
+            <div><dt>The data</dt><dd>Text and call history, the voter status list of ballot requests and early votes, and modeled turnout scores.</dd></div>
+            <div><dt>What I built</dt><dd>A BigQuery pipeline comparing each contact method with an 18–29 no-contact group by state, reporting ballot return rate, early vote rate and turnout score distributions.</dd></div>
+            <div><dt>What it showed</dt><dd>Texted voters had lower predicted turnout than the no-contact group but voted early at a similar rate. Without a randomized control group this is descriptive, and the write-up said so.</dd></div>
+          </dl>
+        </div>
+        <div class="gallery">
+          <figure class="wide">
+            <a href="shots/contacts-method.png" target="_blank" rel="noopener"><img src="shots/contacts-method.png" alt="Early vote by contact method table and bar charts comparing texted voters with no-contact groups" loading="lazy"></a>
+            <figcaption>Early vote, return rate and turnout scores by contact method</figcaption>
+          </figure>
+        </div>
+        <div class="side">
+          <div class="notes">
+            <h4>Method notes</h4>
+            <ul>
+              <li>Counts are unique people per method, so repeat texts don't inflate the totals.</li>
+              <li>The no-contact group is limited to the same ages and states as the program.</li>
+              <li>Temp tables read the national voter file once, which kept query costs down.</li>
+            </ul>
+          </div>
+        </div>
+      </article>
+
+      <article class="case">
+        <div>
+          <div class="case-meta">Planning and field reporting</div>
+          <h3>Campus and Registration Data</h3>
+          <p class="sub">Looker Studio dashboards for campus targeting and voter registration results.</p>
+          <div class="tags"><span>Looker Studio</span><span>IPEDS</span><span>TargetSmart</span><span>Voter file match</span></div>
+          <dl class="facts">
+            <div><dt>The question</dt><dd>Program staff needed campus-level targets and a read on who the voter registration program was reaching.</dd></div>
+            <div><dt>The data</dt><dd>IPEDS enrollment, the TargetSmart voter file, and registration forms matched to the voter file.</dd></div>
+            <div><dt>What I built</dt><dd>Campus count dashboards comparing enrollment with registered youth on and around campus, a registration-to-voter-file match report, and monthly registration totals by source.</dd></div>
+            <div><dt>Outcome</dt><dd>Program staff used one consistent set of campus numbers for planning, and the registration match report showed how many new registrants weren't on the voter file yet. The dashboard helped inform our decisions on which campuses to target.</dd></div>
+          </dl>
+        </div>
+        <div class="gallery">
+          <figure>
+            <a href="shots/campus-voterfile.png" target="_blank" rel="noopener"><img src="shots/campus-voterfile.png" alt="Campus Counts table of registered youth by priority campus with partisan and turnout score averages" loading="lazy"></a>
+            <figcaption>Campus counts: registered youth by priority campus</figcaption>
+          </figure>
+          <figure>
+            <a href="shots/vr-matched.png" target="_blank" rel="noopener"><img src="shots/vr-matched.png" alt="Voter registrations matched to the voter file, with match rate, demographics and turnout and partisan score buckets" loading="lazy"></a>
+            <figcaption>Registrations matched to the voter file</figcaption>
+          </figure>
+        </div>
+        <div class="side">
+          <div class="notes">
+            <h4>Method notes</h4>
+            <ul>
+              <li>Match rate and "new to voter file" are reported separately, so unmatched registrations stay visible.</li>
+              <li>The reporting keeps the same structure each cycle, so past years compare directly.</li>
+            </ul>
+          </div>
+        </div>
+      </article>
+
+      <article class="case">
+        <div>
+          <div class="case-meta">Post-election review · 2024 cycle</div>
+          <h3>2024 Program Review</h3>
+          <p class="sub">Who our registration, pledge and call programs reached, and how the people we contacted turned out.</p>
+          <div class="tags"><span>Voter file match</span><span>Turnout analysis</span><span>Multi-channel outreach</span><span>Looker Studio</span></div>
+          <dl class="facts">
+            <div><dt>The question</dt><dd>After the 2024 election, leadership wanted to know how many people our programs reached, who they were, and whether people we contacted more often or through more channels turned out at higher rates.</dd></div>
+            <div><dt>The data</dt><dd>Voter registration and pledge-to-vote records matched to the voter file, call attempt and conversation logs, text and mail program lists, 2024 vote history, and youth turnout from 2016 to 2024 for context.</dd></div>
+            <div><dt>What I built</dt><dd>A multi-page review: totals collected, match rates and turnout by program; call reach by demographic; turnout by number of conversations and by combination of contact types; and youth turnout trends by party, race and gender.</dd></div>
+            <div><dt>What it showed</dt><dd>Turnout rose with each added type of contact, from registration alone up to registration, text, call and mail, even though those voters had lower predicted turnout going in. Without a randomized control this is descriptive, but it is the pattern a multi-channel program hopes to see.</dd></div>
+            <div><dt>Outcome</dt><dd>The review became the starting point for our 2026 program. Based on what it showed, we shifted toward more online and multi-channel outreach. It also gave us the numbers to show partners and funders the reach and results of our work.</dd></div>
+          </dl>
+        </div>
+        <div class="side">
+          <div class="notes">
+            <h4>Method notes</h4>
+            <ul>
+              <li>Turnout appears next to modeled turnout scores, so groups that were already likely to vote don't look like program wins.</li>
+              <li>Pledges and registrations are reported separately, each with its own voter file match rate.</li>
+              <li>Youth turnout is shown beside total turnout for each year, so presidential and midterm swings aren't mistaken for youth trends.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="gallery">
+          <figure>
+            <a href="shots/review-multimodal.png" target="_blank" rel="noopener"><img src="shots/review-multimodal.png" alt="Bar charts of 2024 turnout by number of call conversations and by combination of contact types, each next to modeled turnout scores" loading="lazy"></a>
+            <figcaption>Turnout by number of conversations and by combination of contact types</figcaption>
+          </figure>
+          <figure>
+            <a href="shots/review-youth-turnout.png" target="_blank" rel="noopener"><img src="shots/review-youth-turnout.png" alt="Table and charts of national youth turnout from 2016 to 2024 compared with total turnout" loading="lazy"></a>
+            <figcaption>National youth turnout, 2016 to 2024, against total turnout</figcaption>
+          </figure>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<hr class="rule">
+
+<section class="block" id="sql">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>SQL samples</h2>
+      <p>BigQuery patterns from the projects above, with table names made generic. Each one solves a problem that would otherwise give wrong numbers or a large bill.</p>
+    </div>
+
+    <div class="tabs" role="tablist" aria-label="SQL samples">
+      <button class="tab" role="tab" id="tab-1" aria-controls="panel-1" aria-selected="true">One row per person</button>
+      <button class="tab" role="tab" id="tab-2" aria-controls="panel-2" aria-selected="false">No-contact group</button>
+      <button class="tab" role="tab" id="tab-3" aria-controls="panel-3" aria-selected="false">Cutting query cost</button>
+      <button class="tab" role="tab" id="tab-4" aria-controls="panel-4" aria-selected="false">Precinct crosswalk</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="panel-1" aria-labelledby="tab-1">
+      <div class="panel-text">
+        <h3>Collapse before you join</h3>
+        <p>The voter status list can have several rows per person.</p>
+        <p class="why">Joining it directly would duplicate contacts and inflate every count. Collapsing it first with <code>LOGICAL_OR</code> keeps one row per voter and marks them true if any row is true.</p>
+      </div>
+<pre><code><span class="k">WITH</span> status <span class="k">AS</span> (
+  <span class="k">SELECT</span>
+    voter_id,
+    <span class="k">LOGICAL_OR</span>(voted_flag)                          <span class="k">AS</span> early_voted,
+    <span class="k">LOGICAL_OR</span>(ballot_requested_flag <span class="k">OR</span> voted_flag) <span class="k">AS</span> requested_ballot
+  <span class="k">FROM</span> `project.voterfile.voter_status`
+  <span class="k">GROUP BY</span> voter_id
+),
+
+<span class="c">-- one row per person per method, so repeat contacts aren't double counted</span>
+contacted <span class="k">AS</span> (
+  <span class="k">SELECT DISTINCT</span> method, voter_id
+  <span class="k">FROM</span> `project.contacts.texts_and_calls`
+)
+
+<span class="k">SELECT</span>
+  c.method,
+  <span class="k">COUNT</span>(c.voter_id)                                        <span class="k">AS</span> targets,
+  <span class="k">COUNTIF</span>(s.requested_ballot)                               <span class="k">AS</span> ballot_requests,
+  <span class="k">COUNTIF</span>(s.early_voted)                                    <span class="k">AS</span> early_votes,
+  <span class="k">SAFE_DIVIDE</span>(<span class="k">COUNTIF</span>(s.early_voted), <span class="k">COUNTIF</span>(s.requested_ballot)) <span class="k">AS</span> return_rate,
+  <span class="k">SAFE_DIVIDE</span>(<span class="k">COUNTIF</span>(s.early_voted), <span class="k">COUNT</span>(c.voter_id))         <span class="k">AS</span> early_vote_rate
+<span class="k">FROM</span> contacted c
+<span class="k">LEFT JOIN</span> status s <span class="k">ON</span> c.voter_id = s.voter_id
+<span class="k">GROUP BY</span> c.method;</code></pre>
+    </div>
+
+    <div class="panel" role="tabpanel" id="panel-2" aria-labelledby="tab-2" hidden>
+      <div class="panel-text">
+        <h3>A comparison group that survives NULLs</h3>
+        <p>The no-contact group is every 18–29 voter in the program states who never got a text or call.</p>
+        <p class="why"><code>NOT IN</code> returns nothing at all if the contact list holds a single NULL ID. <code>NOT EXISTS</code> gives the right answer either way.</p>
+      </div>
+<pre><code>no_contact <span class="k">AS</span> (
+  <span class="k">SELECT</span>
+    <span class="k">'no contact'</span> <span class="k">AS</span> method,
+    v.voter_id
+  <span class="k">FROM</span> `project.voterfile.national_file` v
+  <span class="k">WHERE</span> v.age <span class="k">BETWEEN</span> 18 <span class="k">AND</span> 29
+    <span class="k">AND</span> v.state <span class="k">IN</span> (<span class="k">'GA'</span>, <span class="k">'MI'</span>, <span class="k">'NC'</span>)   <span class="c">-- same states as the program</span>
+    <span class="k">AND NOT EXISTS</span> (
+      <span class="k">SELECT</span> 1
+      <span class="k">FROM</span> contacted c
+      <span class="k">WHERE</span> c.voter_id = v.voter_id
+    )
+),
+
+all_groups <span class="k">AS</span> (
+  <span class="k">SELECT</span> method, voter_id <span class="k">FROM</span> contacted
+  <span class="k">UNION ALL</span>
+  <span class="k">SELECT</span> method, voter_id <span class="k">FROM</span> no_contact
+)</code></pre>
+    </div>
+
+    <div class="panel" role="tabpanel" id="panel-3" aria-labelledby="tab-3" hidden>
+      <div class="panel-text">
+        <h3>Read the big table once</h3>
+        <p>BigQuery bills by data read, and a CTE can be re-run every time a query references it.</p>
+        <p class="why">Saving a narrow, filtered copy of the national voter file as a temp table means the expensive read happens once. Every later step reads the small copy.</p>
+      </div>
+<pre><code><span class="c">-- 1. contacts: read once</span>
+<span class="k">CREATE TEMP TABLE</span> contacted <span class="k">AS</span>
+<span class="k">SELECT DISTINCT</span> method, voter_id
+<span class="k">FROM</span> `project.contacts.texts_and_calls`;
+
+<span class="c">-- 2. national file: only the rows and columns needed</span>
+<span class="k">CREATE TEMP TABLE</span> voters_slim <span class="k">AS</span>
+<span class="k">SELECT</span> voter_id, age, state, turnout_score
+<span class="k">FROM</span> `project.voterfile.national_file`
+<span class="k">WHERE</span> (age <span class="k">BETWEEN</span> 18 <span class="k">AND</span> 29 <span class="k">AND</span> state <span class="k">IN</span> (<span class="k">'GA'</span>, <span class="k">'MI'</span>, <span class="k">'NC'</span>))
+   <span class="k">OR</span> voter_id <span class="k">IN</span> (<span class="k">SELECT</span> voter_id <span class="k">FROM</span> contacted);
+
+<span class="c">-- 3. every later step joins voters_slim, not the national file</span>
+<span class="k">SELECT</span>
+  v.state,
+  g.method,
+  <span class="k">ROUND</span>(<span class="k">AVG</span>(v.turnout_score) / 100, 4)                        <span class="k">AS</span> avg_turnout_score,
+  <span class="k">APPROX_QUANTILES</span>(v.turnout_score, 100)[<span class="k">OFFSET</span>(50)] / 100 <span class="k">AS</span> median_turnout_score
+<span class="k">FROM</span> all_groups g
+<span class="k">LEFT JOIN</span> voters_slim v <span class="k">ON</span> g.voter_id = v.voter_id
+<span class="k">GROUP BY</span> v.state, g.method;</code></pre>
+    </div>
+
+    <div class="panel" role="tabpanel" id="panel-4" aria-labelledby="tab-4" hidden>
+      <div class="panel-text">
+        <h3>Fixing precincts that don't line up</h3>
+        <p>Results and official boundaries agreed on almost every precinct ID. About 25 statewide didn't, mostly precincts that were split or merged.</p>
+        <p class="why">A small hand-checked crosswalk maps each odd shape ID to its results ID. Pieces of a split precinct merge back into one polygon, so vote counts land on the right shape.</p>
+      </div>
+<pre><code>precinct_crosswalk <span class="k">AS</span> (
+  <span class="k">SELECT</span> * <span class="k">FROM UNNEST</span>([
+    <span class="k">STRUCT</span>(<span class="k">'LENOIR'</span> <span class="k">AS</span> county, <span class="k">'PH1'</span> <span class="k">AS</span> shapes_pid, <span class="k">'PH'</span> <span class="k">AS</span> results_pid),
+    <span class="k">STRUCT</span>(<span class="k">'LENOIR'</span>,           <span class="k">'PH2'</span>,               <span class="k">'PH'</span>)
+  ])
+),
+
+precinct_shapes <span class="k">AS</span> (
+  <span class="k">SELECT</span>
+    <span class="k">UPPER</span>(<span class="k">TRIM</span>(s.county_name))                          <span class="k">AS</span> county_name,
+    <span class="k">COALESCE</span>(x.results_pid, <span class="k">UPPER</span>(<span class="k">TRIM</span>(s.precinct_id))) <span class="k">AS</span> precinct_id,
+    <span class="k">ST_UNION_AGG</span>(s.geometry)                            <span class="k">AS</span> geometry
+  <span class="k">FROM</span> `project.geo.precinct_shapes` s
+  <span class="k">LEFT JOIN</span> precinct_crosswalk x
+    <span class="k">ON</span>  <span class="k">UPPER</span>(<span class="k">TRIM</span>(s.county_name)) = x.county
+    <span class="k">AND</span> <span class="k">UPPER</span>(<span class="k">TRIM</span>(s.precinct_id)) = x.shapes_pid
+  <span class="k">WHERE</span> <span class="k">TRIM</span>(s.precinct_id) != <span class="k">''</span>
+  <span class="k">GROUP BY</span> 1, 2
+)</code></pre>
+    </div>
+  </div>
+</section>
+
+<hr class="rule">
+
+<section class="block" id="skills">
+  <div class="wrap">
+    <div class="section-head"><h2>Tools and methods</h2></div>
+    <div class="skills">
+      <div>
+        <h3>Data</h3>
+        <ul>
+          <li>SQL in BigQuery</li>
+          <li>Voter file data and matching</li>
+          <li>AP election results</li>
+          <li>Precinct geography</li>
+          <li>Public data such as IPEDS</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Reporting</h3>
+        <ul>
+          <li>Looker Studio</li>
+          <li>Custom web dashboards</li>
+          <li>Google Sheets</li>        </ul>
+      </div>
+      <div>
+        <h3>Methods</h3>
+        <ul>
+          <li>Funnel and conversion analysis</li>
+          <li>Comparisons across election cycles</li>
+          <li>Comparison groups for program evaluation</li>
+          <li>Cost-aware query design</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="rule">
+
+<section class="block" id="about">
+  <div class="wrap about">
+    <div>
+      <div class="section-head" style="margin-bottom:20px"><h2>About</h2></div>
+      <p>I've worked in organizing for more than 16 years, including more than 8 years in data management and analysis. Most recently I've built reporting for youth voter registration and turnout programs. I like work where the data is messy, the deadline is real, and the people reading the dashboard need to make a decision that day.</p>
+      <p>I built reporting systems that are easily scalable, replicable, and comparable over time, so each cycle's work makes the next one faster.</p>
+    </div>
+    <div class="contact" aria-label="Contact">
+      <div><span>Email</span><span>henry.wisner06@gmail.com</span></div>
+      <div><span>LinkedIn</span><a href="https://www.linkedin.com/in/henrypwisner06/" target="_blank" rel="noopener">linkedin.com/in/henrypwisner06</a></div>      <div><span>Resume</span><a href="https://drive.google.com/file/d/10me4Ez-GcWWH6OGHiOMClXWCeB6vogtT/view?usp=drive_link" target="_blank" rel="noopener">View resume (PDF)</a></div>
+    </div>
+  </div>
+</section>
+
+
+<script>
+(function () {
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('.tab'));
+  function select(tab) {
+    tabs.forEach(function (t) {
+      var on = t === tab;
+      t.setAttribute('aria-selected', on ? 'true' : 'false');
+      t.tabIndex = on ? 0 : -1;
+      document.getElementById(t.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach(function (t, i) {
+    t.tabIndex = i === 0 ? 0 : -1;
+    t.addEventListener('click', function () { select(t); });
+    t.addEventListener('keydown', function (e) {
+      var d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+      if (!d) return;
+      var next = tabs[(i + d + tabs.length) % tabs.length];
+      select(next); next.focus();
+    });
+  });
+})();
+</script>
+</body>
+</html>
