@@ -130,6 +130,9 @@ p { margin: 0; }
 .board-row { padding-block: 14px; border-bottom: 1px solid var(--line); }
 .board-row:last-child { border-bottom: 0; padding-bottom: 0; }
 .board-row .label { font-size: 14px; color: var(--muted); }
+.board-row.stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.case .result { margin-top: 16px; padding: 12px 16px; background: var(--accent-soft); border-radius: 8px; font-size: 16px; max-width: 40em; }
+.case .result b { display: block; font-family: var(--font-mono); font-size: 12px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 2px; }
 .board { container-type: inline-size; min-width: 0; }
 .board-row .value.tools { font-size: 15px; font-stretch: 100%; white-space: nowrap; }
 @supports (font-size: 1cqi) { .board-row .value.tools { font-size: min(18px, 3.8cqi); } }
@@ -295,15 +298,21 @@ img { max-width: 100%; }
       <p class="lede">I build reporting for organizers and leadership: election night trackers, program funnels, and comparisons across election cycles. Most of my work starts in BigQuery and ends in a dashboard people check every morning.</p>
       <div class="cta">
         <a class="btn primary" href="#work">See the work</a>
+        <a class="btn ghost" href="https://drive.google.com/file/d/10me4Ez-GcWWH6OGHiOMClXWCeB6vogtT/view?usp=drive_link" target="_blank" rel="noopener">View resume</a>
         <a class="btn ghost" href="#sql">Read SQL samples</a>
       </div>
     </div>
-    <aside class="board" aria-label="Portfolio at a glance">
-      <h2><span>Reporting status</span><span class="live">● Live</span></h2>
-      <div class="board-row">
-        <div class="label">Case studies reported</div>
-        <div class="value">6 of 6</div>
-        <div class="bar"><span></span></div>
+    <aside class="board" aria-label="At a glance">
+      <h2><span>At a glance</span></h2>
+      <div class="board-row stats">
+        <div>
+          <div class="value">16+ years</div>
+          <div class="label">in organizing</div>
+        </div>
+        <div>
+          <div class="value">8+ years</div>
+          <div class="label">in data management and analysis</div>
+        </div>
       </div>
       <div class="board-row">
         <div class="label">Election cycles compared</div>
@@ -333,6 +342,7 @@ img { max-width: 100%; }
           <div class="case-meta">Program analytics · 2026 cycle</div>
           <h3>VOTE-E Dashboard</h3>
           <p class="sub">Reporting for a chatbot that helps young people register and plan to vote.</p>
+          <p class="result"><b>Result</b>Showed YouTube content converting best, which moved partner outreach from Twitch alone to Twitch and YouTube.</p>
           <div class="tags"><span>BigQuery</span><span>Funnel analysis</span><span>Attribution</span><span>Voter file match</span></div>
           <dl class="facts">
             <div><dt>The question</dt><dd>The program team needed one place to see who the chatbot reached, where people dropped off, and which partners and sources brought in people who went on to register.</dd></div>
@@ -368,6 +378,7 @@ img { max-width: 100%; }
           <div class="case-meta">Live results · Election night 2026</div>
           <h3>Election Night Tracker</h3>
           <p class="sub">Campus turnout and vote share against comparison campuses, plus every race leadership was watching.</p>
+          <p class="result"><b>Result</b>Leadership and the Communications, Social and Development teams used it live to report campus results against a fair comparison.</p>
           <div class="tags"><span>AP results</span><span>Precinct geography</span><span>Live refresh</span><span>Comparison design</span></div>
           <dl class="facts">
             <div><dt>The question</dt><dd>Did turnout and Democratic vote share at our campuses surpass past years, and did our core campuses outperform comparison campuses? How were the Senate, House, governor and state legislative races going?</dd></div>
@@ -403,6 +414,7 @@ img { max-width: 100%; }
           <div class="case-meta">Trend analysis · 2018 / 2022 / 2026</div>
           <h3>Youth Early Vote Comparisons</h3>
           <p class="sub">Is youth early voting ahead of past cycles, while voting is still under way?</p>
+          <p class="result"><b>Result</b>Flagged low youth ballot return rates in Michigan and Pennsylvania, which led to an extra text and social campaign in both states.</p>
           <div class="tags"><span>Time-aligned comparison</span><span>BigQuery</span><span>State drill-down</span></div>
           <dl class="facts">
             <div><dt>The question</dt><dd>Leadership wanted to know each morning whether 18–29 early voting was ahead of 2022 and 2018, nationally and in priority states.</dd></div>
@@ -439,6 +451,7 @@ img { max-width: 100%; }
           <div class="case-meta">Program evaluation · Contact data</div>
           <h3>Contact Method Analysis</h3>
           <p class="sub">How texted voters compared with young voters we didn't reach.</p>
+          <p class="result"><b>Result</b>Texted voters had lower predicted turnout than voters we didn't reach, yet voted early at a similar rate.</p>
           <div class="tags"><span>BigQuery</span><span>Comparison groups</span><span>Turnout scores</span></div>
           <dl class="facts">
             <div><dt>The question</dt><dd>Did people we texted request and return ballots at higher rates than similar people we never contacted?</dd></div>
@@ -470,6 +483,7 @@ img { max-width: 100%; }
           <div class="case-meta">Planning and field reporting</div>
           <h3>Campus and Registration Data</h3>
           <p class="sub">Looker Studio dashboards for campus targeting and voter registration results.</p>
+          <p class="result"><b>Result</b>Gave program staff one consistent set of campus numbers and helped decide which campuses to target.</p>
           <div class="tags"><span>Looker Studio</span><span>IPEDS</span><span>TargetSmart</span><span>Voter file match</span></div>
           <dl class="facts">
             <div><dt>The question</dt><dd>Program staff needed campus-level targets and a read on who the voter registration program was reaching.</dd></div>
@@ -504,6 +518,7 @@ img { max-width: 100%; }
           <div class="case-meta">Post-election review · 2024 cycle</div>
           <h3>2024 Program Review</h3>
           <p class="sub">Who our registration, pledge and call programs reached, and how the people we contacted turned out.</p>
+          <p class="result"><b>Result</b>Became the starting point for the 2026 program and its shift toward online and multi-channel outreach.</p>
           <div class="tags"><span>Voter file match</span><span>Turnout analysis</span><span>Multi-channel outreach</span><span>Looker Studio</span></div>
           <dl class="facts">
             <div><dt>The question</dt><dd>After the 2024 election, leadership wanted to know how many people our programs reached, who they were, and whether people we contacted more often or through more channels turned out at higher rates.</dd></div>
